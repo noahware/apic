@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35514.174 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apic-kernel-static", "apic-kernel-static\apic-kernel-static.vcxproj", "{6F115E3F-5203-4B14-A567-A11643FAF8D3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Debug|ARM64.Build.0 = Debug|ARM64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Debug|x64.ActiveCfg = Debug|x64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Debug|x64.Build.0 = Debug|x64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Debug|x64.Deploy.0 = Debug|x64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Release|ARM64.ActiveCfg = Release|ARM64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Release|ARM64.Build.0 = Release|ARM64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Release|ARM64.Deploy.0 = Release|ARM64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Release|x64.ActiveCfg = Release|x64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Release|x64.Build.0 = Release|x64
+		{6F115E3F-5203-4B14-A567-A11643FAF8D3}.Release|x64.Deploy.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,62 @@
+;
+; apic-kernel-static.inf
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = System ; TODO: specify appropriate Class
+ClassGuid   = {4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider    = %ManufacturerName%
+CatalogFile = apic-kernel-static.cat
+DriverVer   = ; TODO: set DriverVer in stampinf property pages
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+apic-kernel-static.sys = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$.10.0...16299 ; %13% support introduced in build 16299
+
+[Standard.NT$ARCH$.10.0...16299]
+%apic-kernel-static.DeviceDesc% = apic-kernel-static_Device, Root\apic-kernel-static ; TODO: edit hw-id
+
+[apic-kernel-static_Device.NT]
+CopyFiles = File_Copy
+
+[File_Copy]
+apic-kernel-static.sys
+
+;-------------- Service installation
+[apic-kernel-static_Device.NT.Services]
+AddService = apic-kernel-static,%SPSVCINST_ASSOCSERVICE%, apic-kernel-static_Service_Inst
+
+; -------------- apic-kernel-static driver install sections
+[apic-kernel-static_Service_Inst]
+DisplayName    = %apic-kernel-static.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\apic-kernel-static.sys
+
+[apic-kernel-static_Device.NT.Wdf]
+KmdfService = apic-kernel-static, apic-kernel-static_wdfsect
+
+[apic-kernel-static_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE = 0x00000002
+ManufacturerName = "<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "apic-kernel-static Installation Disk"
+apic-kernel-static.DeviceDesc = "apic-kernel-static Device"
+apic-kernel-static.SVCDESC = "apic-kernel-static Service"
