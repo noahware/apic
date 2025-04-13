@@ -42,3 +42,14 @@ apic->send_ipi(interrupt_vector, apic_id);
 
 # Compilable examples
 Compilable examples are provided in the [examples](examples) directory, where there is currently an example for a [windows kernel driver](examples/windows/apic-kernel-static).
+
+# Showcase
+Both of the videos below are using the [windows kernel driver example](examples/windows/apic-kernel-static). They show me placing a breakpoint on the Windows kernel's ipi handler (of vector 0xE1) right before sending an ipi with 0xE1 on the current logical processor. I then allow the ipi to be sent by the example, which is then led to a breakpoint being hit on nt!KiIpiInterrupt. I am then able to read the stack pointer, and find that the `interrupted instruction pointer` has just been pushed on the stack (which is within our example driver - showing that the self ipi was sent successfully).
+
+X2apic:
+
+https://github.com/user-attachments/assets/dd30bf92-f3c8-4a28-88ea-6d67782bb591
+
+Xapic:
+
+https://github.com/user-attachments/assets/b10a9f32-f17e-478c-872e-57c82c6415a4
