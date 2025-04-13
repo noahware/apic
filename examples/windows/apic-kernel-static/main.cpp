@@ -43,8 +43,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 	d_log("[apic] current apic id: %x\n", apic_t::current_apic_id());
 	d_log("[apic] sending interrupt of vector 0x%x\n", interrupt_vector);
 
-	__debugbreak();
-
 	apic->send_ipi(interrupt_vector, icr_destination_shorthand_t::self);
 
 	return STATUS_SUCCESS;
