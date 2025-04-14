@@ -11,14 +11,23 @@ If you do not define `APIC_RUNTIME_INSTANCE_ALLOCATION`, then the library will r
 The aforementioned routine: `apic_t::create_instance()` checks whether apic has already been enabled, and if it has, then it uses the apic version which is already running. 
 If apic is not already enabled, it will enable it with x2apic if it is supported by the CPU (if x2apic is not supported, then it will enable xapic only).
 
-Once you have an instance, sending interrupts to processors is simple. The library exposes 4 routines for this:
+Once you have an instance, sending interrupts to processors is simple. The library exposes such routines for this:
 
 ```cpp
-void send_ipi(uint32_t vector, uint32_t apic_id);
-void send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand);
+void send_ipi(uint32_t vector, uint32_t apic_id, uint8_t is_lowest_priority);
+void send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand, uint8_t is_lowest_priority);
 
 void send_nmi(uint32_t apic_id);
 void send_nmi(icr_destination_shorthand_t destination_shorthand);
+
+void send_smi(uint32_t apic_id);
+void send_smi(icr_destination_shorthand_t destination_shorthand);
+
+void send_init_ipi(uint32_t apic_id);
+void send_init_ipi(icr_destination_shorthand_t destination_shorthand);
+
+void send_startup_ipi(uint32_t apic_id);
+void send_startup_ipi(icr_destination_shorthand_t destination_shorthand);
 ```
 
 These routines allow you to either specify a specific logical processors's apic id - you can read the current logical processor's apic id by invoking the static routine `apic_t::current_apic_id()` - or to specify a shorthand identifier.
@@ -32,7 +41,7 @@ apic_t* apic = apic_t::create_instance();
 apic->send_nmi(icr_destination_shorthand_t::all_but_self);
 ```
 
-Heres another example on how to send an interrupt with vector 0xE1 to the apic id `3`:
+Heres another example on how to send an interrupt with vector `0xE1` to the apic id `3`:
 
 ```cpp
 apic_t* apic = apic_t::create_instance();
@@ -41,6 +50,17 @@ uint32_t interrupt_vector = 0xE1;
 uint32_t apic_id = 3;
 
 apic->send_ipi(interrupt_vector, apic_id);
+```
+
+Finally, heres another example on how to send an interrupt with vector `0xE1` to the apic id `3` with the `lowest priority`:
+
+```cpp
+apic_t* apic = apic_t::create_instance();
+
+uint32_t interrupt_vector = 0xE1;
+uint32_t apic_id = 3;
+
+apic->send_ipi(interrupt_vector, apic_id, 1);
 ```
 
 Once you are ready to free the apic instance, then just use the delete operator on the object. An example is linked below:

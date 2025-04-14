@@ -86,17 +86,21 @@ apic_full_icr_t apic_t::make_base_icr(uint32_t vector, icr_delivery_mode_t deliv
 	return icr;
 }
 
-void apic_t::send_ipi(uint32_t vector, uint32_t apic_id)
+void apic_t::send_ipi(uint32_t vector, uint32_t apic_id, uint8_t is_lowest_priority)
 {
-	apic_full_icr_t icr = make_base_icr(vector, icr_delivery_mode_t::fixed, icr_destination_mode_t::physical);
+	icr_delivery_mode_t delivery_mode = is_lowest_priority == 1 ? icr_delivery_mode_t::lowest_priority : icr_delivery_mode_t::fixed;
+
+	apic_full_icr_t icr = make_base_icr(vector, delivery_mode, icr_destination_mode_t::physical);
 
 	this->set_icr_longhand_destination(icr, apic_id);
 	this->write_icr(icr);
 }
 
-void apic_t::send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand)
+void apic_t::send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand, uint8_t is_lowest_priority)
 {
-	apic_full_icr_t icr = make_base_icr(vector, icr_delivery_mode_t::fixed, icr_destination_mode_t::physical);
+	icr_delivery_mode_t delivery_mode = is_lowest_priority == 1 ? icr_delivery_mode_t::lowest_priority : icr_delivery_mode_t::fixed;
+
+	apic_full_icr_t icr = make_base_icr(vector, delivery_mode, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
@@ -114,6 +118,57 @@ void apic_t::send_nmi(uint32_t apic_id)
 void apic_t::send_nmi(icr_destination_shorthand_t destination_shorthand)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::nmi, icr_destination_mode_t::physical);
+
+	icr.low.destination_shorthand = destination_shorthand;
+
+	this->write_icr(icr);
+}
+
+void apic_t::send_smi(uint32_t apic_id)
+{
+	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::smi, icr_destination_mode_t::physical);
+
+	this->set_icr_longhand_destination(icr, apic_id);
+	this->write_icr(icr);
+}
+
+void apic_t::send_smi(icr_destination_shorthand_t destination_shorthand)
+{
+	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::smi, icr_destination_mode_t::physical);
+
+	icr.low.destination_shorthand = destination_shorthand;
+
+	this->write_icr(icr);
+}
+
+void apic_t::send_init_ipi(uint32_t apic_id)
+{
+	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::init, icr_destination_mode_t::physical);
+
+	this->set_icr_longhand_destination(icr, apic_id);
+	this->write_icr(icr);
+}
+
+void apic_t::send_init_ipi(icr_destination_shorthand_t destination_shorthand)
+{
+	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::init, icr_destination_mode_t::physical);
+
+	icr.low.destination_shorthand = destination_shorthand;
+
+	this->write_icr(icr);
+}
+
+void apic_t::send_startup_ipi(uint32_t apic_id)
+{
+	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
+
+	this->set_icr_longhand_destination(icr, apic_id);
+	this->write_icr(icr);
+}
+
+void apic_t::send_startup_ipi(icr_destination_shorthand_t destination_shorthand)
+{
+	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 

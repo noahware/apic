@@ -26,11 +26,20 @@ public:
 
 	static apic_full_icr_t make_base_icr(uint32_t vector, icr_delivery_mode_t delivery_mode, icr_destination_mode_t destination_mode);
 
-	void send_ipi(uint32_t vector, uint32_t apic_id);
-	void send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand);
+	void send_ipi(uint32_t vector, uint32_t apic_id, uint8_t is_lowest_priority = 0);
+	void send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand, uint8_t is_lowest_priority = 0);
 
 	void send_nmi(uint32_t apic_id);
 	void send_nmi(icr_destination_shorthand_t destination_shorthand);
+
+	void send_smi(uint32_t apic_id);
+	void send_smi(icr_destination_shorthand_t destination_shorthand);
+
+	void send_init_ipi(uint32_t apic_id);
+	void send_init_ipi(icr_destination_shorthand_t destination_shorthand);
+
+	void send_startup_ipi(uint32_t apic_id);
+	void send_startup_ipi(icr_destination_shorthand_t destination_shorthand);
 
 	void* operator new(uint64_t size, void* p);
 	void operator delete(void* p, uint64_t size);
