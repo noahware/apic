@@ -8,11 +8,12 @@ extern void unmap_physical_address(void* map_base_address);
 
 constexpr uint64_t needed_apic_class_instance_size = sizeof(xapic_t) < sizeof(x2apic_t) ? sizeof(x2apic_t) : sizeof(xapic_t);
 
-#ifdef APIC_COMPILE_TIME_INSTANCE_ALLOCATION
-static char apic_class_instance_allocation[needed_apic_class_instance_size] = { };
-#else
-// allocate_memory is up to you to implement
+#ifdef APIC_RUNTIME_INSTANCE_ALLOCATION
+// allocate_memory and free is up to you to implement
 extern void* allocate_memory(uint64_t size);
+extern void free_memory(void* p, uint64_t size);
+#else
+static char apic_class_instance_allocation[needed_apic_class_instance_size] = { };
 #endif
 
 cpuid_01_t perform_cpuid_01()
@@ -47,7 +48,7 @@ uint8_t apic_t::is_any_enabled(apic_base_t apic_base)
 
 uint8_t apic_t::is_x2apic_enabled(apic_base_t apic_base)
 {
-	return is_any_enabled(apic_base) && apic_base.is_x2apic;
+	return is_any_enabled(apic_base) == 1 && apic_base.is_x2apic == 1;
 }
 
 apic_base_t apic_t::read_apic_base()
@@ -120,6 +121,23 @@ void apic_t::send_nmi(icr_destination_shorthand_t destination_shorthand)
 	this->write_icr(icr);
 }
 
+void* apic_t::operator new(uint64_t size, void* p)
+{
+	size;
+
+	return p;
+}
+
+void apic_t::operator delete(void* p, uint64_t size)
+{
+#ifdef APIC_RUNTIME_INSTANCE_ALLOCATION
+	free_memory(p, size);
+#else
+	p;
+	size;
+#endif
+}
+
 xapic_t::xapic_t()
 {
 	apic_base_t apic_base = read_apic_base();
@@ -129,14 +147,30 @@ xapic_t::xapic_t()
 	this->mapped_apic_base = static_cast<uint8_t*>(map_physical_address(apic_physical_address));
 }
 
+xapic_t::~xapic_t()
+{
+	if (this->mapped_apic_base != nullptr)
+	{
+		unmap_physical_address(this->mapped_apic_base);
+	}
+}
+
 uint32_t xapic_t::do_read(uint16_t offset) const
 {
+	if (this->mapped_apic_base == nullptr)
+	{
+		return 0;
+	}
+
 	return *reinterpret_cast<uint32_t*>(this->mapped_apic_base + offset);
 }
 
 void xapic_t::do_write(uint16_t offset, uint32_t value) const
 {
-	*reinterpret_cast<uint32_t*>(this->mapped_apic_base + offset) = value;
+	if (this->mapped_apic_base != nullptr)
+	{
+		*reinterpret_cast<uint32_t*>(this->mapped_apic_base + offset) = value;
+	}
 }
 
 void xapic_t::write_icr(apic_full_icr_t icr)
@@ -174,7 +208,9 @@ void x2apic_t::set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t desti
 
 apic_t* apic_t::create_instance()
 {
-#ifdef APIC_COMPILE_TIME_INSTANCE_ALLOCATION
+#ifdef APIC_RUNTIME_INSTANCE_ALLOCATION
+	void* apic_allocation = allocate_memory(needed_apic_class_instance_size);
+#else
 	static uint8_t has_used_allocation = 0;
 
 	if (has_used_allocation++ != 0)
@@ -183,25 +219,23 @@ apic_t* apic_t::create_instance()
 	}
 
 	void* apic_allocation = &apic_class_instance_allocation;
-#else
-	void* apic_allocation = allocate_memory(needed_apic_class_size);
 #endif
 
-	apic_base_t apic_base = xapic_t::read_apic_base();
+	apic_base_t apic_base = read_apic_base();
 
-	uint8_t is_any_apic_enabled = xapic_t::is_any_enabled(apic_base);
+	uint8_t is_any_apic_enabled = is_any_enabled(apic_base);
 
 	uint8_t use_x2apic = 0;
 
 	if (is_any_apic_enabled == 1)
 	{
-		use_x2apic = x2apic_t::is_x2apic_enabled(apic_base);
+		use_x2apic = is_x2apic_enabled(apic_base);
 	}
 	else
 	{
-		use_x2apic = apic_t::is_x2apic_supported();
+		use_x2apic = is_x2apic_supported();
 
-		apic_t::enable(use_x2apic);
+		enable(use_x2apic);
 	}
 
 	apic_t* apic = nullptr;

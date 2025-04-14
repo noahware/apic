@@ -19,15 +19,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="apic-kernel-static.inf">
+    <Inf Include="apic-kernel-dynamic.inf">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="..\..\..\src\apic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\apic.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

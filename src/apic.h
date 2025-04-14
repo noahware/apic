@@ -1,13 +1,14 @@
 #pragma once
 #include "apic_def.h"
 
-// comment line below out to allocate memory for the apic class instances at runtime
-#define APIC_COMPILE_TIME_INSTANCE_ALLOCATION
+// if you want apic_t::create_instance to use runtime memory allocation for the instance(s) it creates
+// then make sure to #define APIC_RUNTIME_INSTANCE_ALLOCATION
 
 class apic_t
 {
 public:
 	apic_t() = default;
+	virtual ~apic_t() = default;
 
 	virtual void write_icr(apic_full_icr_t icr) = 0;
 	virtual void set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination) = 0;
@@ -30,6 +31,9 @@ public:
 
 	void send_nmi(uint32_t apic_id);
 	void send_nmi(icr_destination_shorthand_t destination_shorthand);
+
+	void* operator new(uint64_t size, void* p);
+	void operator delete(void* p, uint64_t size);
 };
 
 class xapic_t : public apic_t
@@ -42,6 +46,7 @@ protected:
 
 public:
 	xapic_t();
+	~xapic_t() override;
 
 	void write_icr(apic_full_icr_t icr) override;
 	void set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination) override;

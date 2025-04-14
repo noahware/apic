@@ -1,5 +1,13 @@
 #pragma once
-#include "apic_crt.h"
+
+typedef signed char        int8_t;
+typedef short              int16_t;
+typedef int                int32_t;
+typedef long long          int64_t;
+typedef unsigned char      uint8_t;
+typedef unsigned short     uint16_t;
+typedef unsigned int       uint32_t;
+typedef unsigned long long uint64_t;
 
 enum class icr_delivery_mode_t : uint32_t
 {
@@ -43,8 +51,10 @@ enum class icr_destination_shorthand_t : uint32_t
 	all_but_self = 0b11
 };
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4201)
+#endif
 
 // Intel SDM Volume 3: 12.6.1 Interrupt Command Register (ICR)
 union apic_icr_low_t
@@ -134,7 +144,9 @@ struct cpuid_01_t
 	uint32_t edx;
 };
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 class apic_field_t
 {

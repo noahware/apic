@@ -1,0 +1,62 @@
+;
+; apic-kernel-dynamic.inf
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = System ; TODO: specify appropriate Class
+ClassGuid   = {4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider    = %ManufacturerName%
+CatalogFile = apic-kernel-dynamic.cat
+DriverVer   = ; TODO: set DriverVer in stampinf property pages
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+apic-kernel-dynamic.sys = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$.10.0...16299 ; %13% support introduced in build 16299
+
+[Standard.NT$ARCH$.10.0...16299]
+%apic-kernel-dynamic.DeviceDesc% = apic-kernel-dynamic_Device, Root\apic-kernel-dynamic ; TODO: edit hw-id
+
+[apic-kernel-dynamic_Device.NT]
+CopyFiles = File_Copy
+
+[File_Copy]
+apic-kernel-dynamic.sys
+
+;-------------- Service installation
+[apic-kernel-dynamic_Device.NT.Services]
+AddService = apic-kernel-dynamic,%SPSVCINST_ASSOCSERVICE%, apic-kernel-dynamic_Service_Inst
+
+; -------------- apic-kernel-dynamic driver install sections
+[apic-kernel-dynamic_Service_Inst]
+DisplayName    = %apic-kernel-dynamic.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\apic-kernel-dynamic.sys
+
+[apic-kernel-dynamic_Device.NT.Wdf]
+KmdfService = apic-kernel-dynamic, apic-kernel-dynamic_wdfsect
+
+[apic-kernel-dynamic_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE = 0x00000002
+ManufacturerName = "<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "apic-kernel-dynamic Installation Disk"
+apic-kernel-dynamic.DeviceDesc = "apic-kernel-dynamic Device"
+apic-kernel-dynamic.SVCDESC = "apic-kernel-dynamic Service"

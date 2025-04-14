@@ -4,9 +4,12 @@ C++ library for sending processor interrupts via x2apic & xapic.
 # Usage
 The library is OS independent, it doesn't rely on any operating system specific libraries. This means you are easily able to implement this into your own: operating system, hypervisor, kernel driver, etc.
 
-To get an instance of the apic class, call the static routine `apic_t::create_instance()`, but I assume you are wondering, how is it allocating memory for the class? To specify the allocation of the class instance, you can either `#define APIC_COMPILE_TIME_INSTANCE_ALLOCATION` - which will reserve enough memory for an instance of either `xapic_t` or `x2apic_t` at compile time, so it wont rely on any runtime memory allocation.
-If you do not define `APIC_COMPILE_TIME_INSTANCE_ALLOCATION`, then the library will expect you to define a routine: `allocate_memory(uint64_t size)` (which will then be invoked to allocate memory for class at runtime if you have opted out of compile time allocation).
-The aforementioned routine: `apic_t::create_instance()` checks whether apic has already been enabled, and if it has, then it uses the apic version which is already running. If apic is not already enabled, it will enable it with x2apic if it is supported by the CPU (if x2apic is not supported, then it will enable xapic only).
+To get an instance of the apic class, call the static routine `apic_t::create_instance()`, but I assume you are wondering, how is it allocating memory for the class?
+To specify the allocation of the class instance, you can either `#define APIC_RUNTIME_INSTANCE_ALLOCATION` - which will make the library expect you to define
+two routines: `allocate_memory(uint64_t size)` and `free_memory(void* p, uint64_t size)` (which will then be invoked to allocate and deallocate memory for class instances at runtime if you have opted out of compile time allocation).
+If you do not define `APIC_RUNTIME_INSTANCE_ALLOCATION`, then the library will reserve enough memory for an instance of either `xapic_t` or `x2apic_t` at compile time, so it won't rely on any runtime memory allocation.
+The aforementioned routine: `apic_t::create_instance()` checks whether apic has already been enabled, and if it has, then it uses the apic version which is already running. 
+If apic is not already enabled, it will enable it with x2apic if it is supported by the CPU (if x2apic is not supported, then it will enable xapic only).
 
 Once you have an instance, sending interrupts to processors is simple. The library exposes 4 routines for this:
 
@@ -40,8 +43,17 @@ uint32_t apic_id = 3;
 apic->send_ipi(interrupt_vector, apic_id);
 ```
 
+Once you are ready to free the apic instance, then just use the delete operator on the object. An example is linked below:
+
+```cpp
+apic_t* apic = apic_t::create_instance();
+
+delete apic;
+apic = nullptr; // optional, but good practice to do so
+```
+
 # Compilable examples
-Compilable examples are provided in the [examples](examples) directory, where there is currently an example for a [windows kernel driver](examples/windows/apic-kernel-static).
+Compilable examples are provided in the [examples](examples) directory, where there is currently an two examples of a windows kernel driver. One uses [compile time instance allocation](examples/windows/apic-kernel-static), and the other uses [runtime instance allocation](examples/windows/apic-kernel-dynamic).
 
 # Showcase
 Both of the videos below are using the [windows kernel driver example](examples/windows/apic-kernel-static). They show me placing a breakpoint on the Windows kernel's ipi handler (of vector 0xE1) right before sending an ipi with 0xE1 on the current logical processor. I then allow the ipi to be sent by the example, which is then led to a breakpoint being hit on nt!KiIpiInterrupt. I am then able to read the stack pointer, and find that the `interrupted instruction pointer` has just been pushed on the stack (which is within our example driver - showing that the self ipi was sent successfully).

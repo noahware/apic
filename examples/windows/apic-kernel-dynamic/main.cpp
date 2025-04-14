@@ -12,7 +12,7 @@ void driver_unload(PDRIVER_OBJECT driver_object)
 void* map_physical_address(uint64_t physical_address)
 {
 	PHYSICAL_ADDRESS address_to_map = { };
-	address_to_map.QuadPart = physical_address;
+	address_to_map.QuadPart = static_cast<int64_t>(physical_address);
 
 	return MmMapIoSpace(address_to_map, 0x1000, MmNonCached);
 }
@@ -20,6 +20,18 @@ void* map_physical_address(uint64_t physical_address)
 void unmap_physical_address(void* map_base_address)
 {
 	return MmUnmapIoSpace(map_base_address, 0x1000);
+}
+
+void* allocate_memory(uint64_t size)
+{
+	return ExAllocatePool2(POOL_FLAG_NON_PAGED, size, 'apic');
+}
+
+void free_memory(void* p, uint64_t size)
+{
+	UNREFERENCED_PARAMETER(size);
+
+	ExFreePoolWithTag(p, 'apic');
 }
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_path)
