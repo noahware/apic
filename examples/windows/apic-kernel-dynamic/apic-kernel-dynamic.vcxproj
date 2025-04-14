@@ -121,6 +121,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\src\apic.h" />
     <ClInclude Include="..\..\..\src\apic_def.h" />
+    <ClInclude Include="..\..\..\src\apic_intrin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

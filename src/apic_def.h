@@ -144,10 +144,6 @@ struct cpuid_01_t
 	uint32_t edx;
 };
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 class apic_field_t
 {
 protected:
@@ -171,4 +167,22 @@ namespace apic
 {
 	constexpr uint32_t apic_base_msr = 0x1B;
 	constexpr apic_field_t icr(0x300);
+
+	namespace intrin
+	{
+		union parted_uint64_t
+		{
+			struct
+			{
+				uint32_t low_part;
+				uint32_t high_part;
+			};
+
+			uint64_t value;
+		};
+	}
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

@@ -1,6 +1,5 @@
 #include "apic.h"
-
-#include <intrin.h>
+#include "apic_intrin.h"
 
 // map_physical_address and unmap_physical_address is up to you to implement
 extern void* map_physical_address(uint64_t physical_address);
@@ -19,7 +18,7 @@ static char apic_class_instance_allocation[needed_apic_class_instance_size] = { 
 cpuid_01_t perform_cpuid_01()
 {
 	cpuid_01_t cpuid_01 = { };
-	__cpuid(reinterpret_cast<int32_t*>(&cpuid_01), 1);
+	apic::intrin::cpuid(reinterpret_cast<int32_t*>(&cpuid_01), 1);
 
 	return cpuid_01;
 }
@@ -36,7 +35,7 @@ uint8_t apic_t::enable(uint8_t use_x2apic)
 	apic_base.is_apic_globally_enabled = 1;
 	apic_base.is_x2apic = use_x2apic;
 
-	__writemsr(apic::apic_base_msr, apic_base.flags);
+	apic::intrin::wrmsr(apic::apic_base_msr, apic_base.flags);
 
 	return 1;
 }
@@ -55,7 +54,7 @@ apic_base_t apic_t::read_apic_base()
 {
 	apic_base_t apic_base = { };
 
-	apic_base.flags = __readmsr(apic::apic_base_msr);
+	apic_base.flags = apic::intrin::rdmsr(apic::apic_base_msr);
 
 	return apic_base;
 }
@@ -188,12 +187,12 @@ void xapic_t::set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destin
 
 uint64_t x2apic_t::do_read(uint32_t msr)
 {
-	return __readmsr(msr);
+	return apic::intrin::rdmsr(msr);
 }
 
 void x2apic_t::do_write(uint32_t msr, uint64_t value)
 {
-	__writemsr(msr, value);
+	apic::intrin::wrmsr(msr, value);
 }
 
 void x2apic_t::write_icr(apic_full_icr_t icr)
