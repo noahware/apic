@@ -267,10 +267,12 @@ apic_t* apic_t::create_instance()
 #else
 	static uint8_t has_used_allocation = 0;
 
-	if (has_used_allocation++ != 0)
+	if (has_used_allocation != 0)
 	{
 		return nullptr;
 	}
+
+	has_used_allocation = 1;
 
 	void* apic_allocation = &apic_class_instance_allocation;
 #endif
