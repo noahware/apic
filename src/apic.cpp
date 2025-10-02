@@ -240,6 +240,13 @@ void xapic_t::set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destin
 	icr.high.xapic.destination_field = destination;
 }
 
+void xapic_t::signal_eoi()
+{
+	constexpr uint16_t xapic_eoi = apic::eoi.get_xapic();
+
+	do_write(xapic_eoi, 0);
+}
+
 uint64_t x2apic_t::do_read(uint32_t msr)
 {
 	return apic::intrin::rdmsr(msr);
@@ -252,12 +259,21 @@ void x2apic_t::do_write(uint32_t msr, uint64_t value)
 
 void x2apic_t::write_icr(apic_full_icr_t icr)
 {
-	do_write(apic::icr.get_x2apic(), icr.flags);
+	constexpr uint16_t x2apic_icr = apic::icr.get_x2apic();
+
+	do_write(x2apic_icr, icr.flags);
 }
 
 void x2apic_t::set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination)
 {
 	icr.high.x2apic.destination_field = destination;
+}
+
+void x2apic_t::signal_eoi()
+{
+	constexpr uint16_t x2apic_eoi = apic::eoi.get_x2apic();
+
+	do_write(x2apic_eoi, 0);
 }
 
 apic_t* apic_t::create_instance()
@@ -307,4 +323,3 @@ apic_t* apic_t::create_instance()
 
 	return apic;
 }
-

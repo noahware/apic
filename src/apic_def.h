@@ -166,6 +166,7 @@ public:
 namespace apic
 {
 	constexpr uint32_t apic_base_msr = 0x1B;
+	constexpr apic_field_t eoi(0xB0);
 	constexpr apic_field_t icr(0x300);
 
 	namespace intrin

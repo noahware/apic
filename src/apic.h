@@ -12,6 +12,7 @@ public:
 
 	virtual void write_icr(apic_full_icr_t icr) = 0;
 	virtual void set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination) = 0;
+	virtual void signal_eoi() = 0;
 
 	static apic_t* create_instance();
 
@@ -59,6 +60,7 @@ public:
 
 	void write_icr(apic_full_icr_t icr) override;
 	void set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination) override;
+	void signal_eoi() override;
 };
 
 class x2apic_t : public apic_t
@@ -70,4 +72,5 @@ protected:
 public:
 	void write_icr(apic_full_icr_t icr) override;
 	void set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination) override;
+	void signal_eoi() override;
 };
