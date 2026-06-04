@@ -1,8 +1,8 @@
 #include "apic.h"
 #include "apic_intrin.h"
 
-extern void* map_physical_address(uint64_t physical_address);
-extern void unmap_physical_address(void* map_base_address);
+extern void* apic_lib_map_physical_address(uint64_t physical_address);
+extern void apic_lib_unmap_physical_address(void* map_base_address);
 
 #ifdef APIC_RUNTIME_INSTANCE_ALLOCATION
 extern void* allocate_memory(uint64_t size);
@@ -243,7 +243,7 @@ xapic::xapic()
 	{
 		const uint64_t apic_physical_address = apic_base.apic_pfn << 12;
 
-		mapped_base_ = static_cast<uint8_t*>(::map_physical_address(apic_physical_address));
+		mapped_base_ = static_cast<uint8_t*>(::apic_lib_map_physical_address(apic_physical_address));
 	}
 }
 
@@ -251,7 +251,7 @@ xapic::~xapic()
 {
 	if (mapped_base_ != nullptr)
 	{
-		::unmap_physical_address(mapped_base_);
+		::apic_lib_unmap_physical_address(mapped_base_);
 	}
 }
 

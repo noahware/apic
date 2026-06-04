@@ -9,7 +9,7 @@ void driver_unload(PDRIVER_OBJECT driver_object)
 	UNREFERENCED_PARAMETER(driver_object);
 }
 
-void* map_physical_address(uint64_t physical_address)
+void* apic_lib_map_physical_address(uint64_t physical_address)
 {
 	PHYSICAL_ADDRESS address_to_map = { };
 	address_to_map.QuadPart = physical_address;
@@ -17,7 +17,7 @@ void* map_physical_address(uint64_t physical_address)
 	return MmMapIoSpace(address_to_map, 0x1000, MmNonCached);
 }
 
-void unmap_physical_address(void* map_base_address)
+void apic_lib_unmap_physical_address(void* map_base_address)
 {
 	return MmUnmapIoSpace(map_base_address, 0x1000);
 }
