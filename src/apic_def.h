@@ -146,27 +146,27 @@ struct cpuid_01_t
 
 class apic_field_t
 {
-protected:
-	const uint16_t xapic_offset;
-
 public:
-	constexpr apic_field_t(uint16_t xapic_offset_in) : xapic_offset(xapic_offset_in) {}
+	explicit constexpr apic_field_t(const uint16_t xapic_offset)
+			:	xapic_offset_(xapic_offset) {}
 
-	constexpr uint16_t get_xapic() const
+	[[nodiscard]] constexpr uint16_t xapic() const
 	{
-		return this->xapic_offset;
+		return xapic_offset_;
 	}
 
-	constexpr uint16_t get_x2apic() const
+	[[nodiscard]] constexpr uint16_t x2apic() const
 	{
-		return 0x800 + (this->xapic_offset / 0x10);
+		return 0x800 + (xapic_offset_ / 0x10);
 	}
+
+protected:
+	const uint16_t xapic_offset_;
 };
 
 namespace apic
 {
 	constexpr uint32_t apic_base_msr = 0x1B;
-	constexpr apic_field_t eoi(0xB0);
 	constexpr apic_field_t icr(0x300);
 
 	namespace intrin

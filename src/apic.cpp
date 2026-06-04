@@ -17,13 +17,14 @@ static char apic_class_instance_allocation[needed_apic_class_instance_size] = { 
 
 cpuid_01_t perform_cpuid_01()
 {
-	cpuid_01_t cpuid_01 = { };
+	cpuid_01_t cpuid_01;
+
 	apic::intrin::cpuid(reinterpret_cast<int32_t*>(&cpuid_01), 1);
 
 	return cpuid_01;
 }
 
-uint8_t apic_t::enable(uint8_t use_x2apic)
+uint8_t apic_t::enable(const uint8_t use_x2apic)
 {
 	apic_base_t apic_base = read_apic_base();
 
@@ -40,40 +41,40 @@ uint8_t apic_t::enable(uint8_t use_x2apic)
 	return 1;
 }
 
-uint8_t apic_t::is_any_enabled(apic_base_t apic_base)
+uint8_t apic_t::is_any_enabled(const apic_base_t apic_base)
 {
 	return apic_base.is_apic_globally_enabled;
 }
 
-uint8_t apic_t::is_x2apic_enabled(apic_base_t apic_base)
+uint8_t apic_t::is_x2apic_enabled(const apic_base_t apic_base)
 {
 	return is_any_enabled(apic_base) == 1 && apic_base.is_x2apic == 1;
 }
 
 apic_base_t apic_t::read_apic_base()
 {
-	apic_base_t apic_base = { };
+	apic_base_t base;
 
-	apic_base.flags = apic::intrin::rdmsr(apic::apic_base_msr);
+	base.flags = apic::intrin::rdmsr(apic::apic_base_msr);
 
-	return apic_base;
+	return base;
 }
 
 uint32_t apic_t::current_apic_id()
 {
-	cpuid_01_t cpuid_01 = perform_cpuid_01();
+	const cpuid_01_t cpuid_01 = perform_cpuid_01();
 	
 	return cpuid_01.ebx.initial_apic_id;
 }
 
 uint8_t apic_t::is_x2apic_supported()
 {
-	cpuid_01_t cpuid_01 = perform_cpuid_01();
+	const cpuid_01_t cpuid_01 = perform_cpuid_01();
 
 	return cpuid_01.ecx.x2apic_supported == 1;
 }
 
-apic_full_icr_t apic_t::make_base_icr(uint32_t vector, icr_delivery_mode_t delivery_mode, icr_destination_mode_t destination_mode)
+apic_full_icr_t apic_t::make_base_icr(const uint32_t vector, const icr_delivery_mode_t delivery_mode, const icr_destination_mode_t destination_mode)
 {
 	apic_full_icr_t icr = { };
 
@@ -86,194 +87,192 @@ apic_full_icr_t apic_t::make_base_icr(uint32_t vector, icr_delivery_mode_t deliv
 	return icr;
 }
 
-void apic_t::send_ipi(uint32_t vector, uint32_t apic_id, uint8_t is_lowest_priority)
+void apic_t::send_ipi(const uint32_t vector, const uint32_t apic_id, const uint8_t is_lowest_priority)
 {
-	icr_delivery_mode_t delivery_mode = is_lowest_priority == 1 ? icr_delivery_mode_t::lowest_priority : icr_delivery_mode_t::fixed;
+	const icr_delivery_mode_t delivery_mode = is_lowest_priority == 1 ? icr_delivery_mode_t::lowest_priority : icr_delivery_mode_t::fixed;
 
 	apic_full_icr_t icr = make_base_icr(vector, delivery_mode, icr_destination_mode_t::physical);
 
-	this->set_icr_longhand_destination(icr, apic_id);
-	this->write_icr(icr);
+	set_icr_longhand_destination(icr, apic_id);
+	write_icr(icr);
 }
 
-void apic_t::send_ipi(uint32_t vector, icr_destination_shorthand_t destination_shorthand, uint8_t is_lowest_priority)
+void apic_t::send_ipi(const uint32_t vector, const icr_destination_shorthand_t destination_shorthand, const uint8_t is_lowest_priority)
 {
-	icr_delivery_mode_t delivery_mode = is_lowest_priority == 1 ? icr_delivery_mode_t::lowest_priority : icr_delivery_mode_t::fixed;
+	const icr_delivery_mode_t delivery_mode = is_lowest_priority == 1 ? icr_delivery_mode_t::lowest_priority : icr_delivery_mode_t::fixed;
 
 	apic_full_icr_t icr = make_base_icr(vector, delivery_mode, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
-	this->write_icr(icr);
+	write_icr(icr);
 }
 
-void apic_t::send_nmi(uint32_t apic_id)
+void apic_t::send_nmi(const uint32_t apic_id)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::nmi, icr_destination_mode_t::physical);
 
-	this->set_icr_longhand_destination(icr, apic_id);
-	this->write_icr(icr);
+	set_icr_longhand_destination(icr, apic_id);
+	write_icr(icr);
 }
 
-void apic_t::send_nmi(icr_destination_shorthand_t destination_shorthand)
+void apic_t::send_nmi(const icr_destination_shorthand_t destination_shorthand)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::nmi, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
-	this->write_icr(icr);
+	write_icr(icr);
 }
 
-void apic_t::send_smi(uint32_t apic_id)
+void apic_t::send_smi(const uint32_t apic_id)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::smi, icr_destination_mode_t::physical);
 
-	this->set_icr_longhand_destination(icr, apic_id);
-	this->write_icr(icr);
+	set_icr_longhand_destination(icr, apic_id);
+	write_icr(icr);
 }
 
-void apic_t::send_smi(icr_destination_shorthand_t destination_shorthand)
+void apic_t::send_smi(const icr_destination_shorthand_t destination_shorthand)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::smi, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
-	this->write_icr(icr);
+	write_icr(icr);
 }
 
-void apic_t::send_init_ipi(uint32_t apic_id)
+void apic_t::send_init_ipi(const uint32_t apic_id)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::init, icr_destination_mode_t::physical);
 
-	this->set_icr_longhand_destination(icr, apic_id);
-	this->write_icr(icr);
+	set_icr_longhand_destination(icr, apic_id);
+	write_icr(icr);
 }
 
-void apic_t::send_init_ipi(icr_destination_shorthand_t destination_shorthand)
+void apic_t::send_init_ipi(const icr_destination_shorthand_t destination_shorthand)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::init, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
-	this->write_icr(icr);
+	write_icr(icr);
 }
 
-void apic_t::send_startup_ipi(uint32_t apic_id)
+void apic_t::send_startup_ipi(const uint32_t apic_id)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
 
-	this->set_icr_longhand_destination(icr, apic_id);
-	this->write_icr(icr);
+	set_icr_longhand_destination(icr, apic_id);
+	write_icr(icr);
 }
 
-void apic_t::send_startup_ipi(icr_destination_shorthand_t destination_shorthand)
+void apic_t::send_startup_ipi(const icr_destination_shorthand_t destination_shorthand)
 {
 	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
-	this->write_icr(icr);
+	write_icr(icr);
 }
 
-void* apic_t::operator new(uint64_t size, void* p)
+void* apic_t::operator new(const uint64_t size, void* const p)
 {
-	size;
+	(void)size;
 
 	return p;
 }
 
-void apic_t::operator delete(void* p, uint64_t size)
+void apic_t::operator delete(void* const p, const uint64_t size)
 {
 #ifdef APIC_RUNTIME_INSTANCE_ALLOCATION
 	free_memory(p, size);
 #else
-	p;
-	size;
+	(void)p;
+	(void)size;
 #endif
 }
 
 xapic_t::xapic_t()
 {
-	apic_base_t apic_base = read_apic_base();
+	const apic_base_t apic_base = read_apic_base();
 
-	uint64_t apic_physical_address = apic_base.apic_pfn << 12;
+	if (apic_base.flags != 0)
+	{
+		const uint64_t apic_physical_address = apic_base.apic_pfn << 12;
 
-	this->mapped_apic_base = static_cast<uint8_t*>(map_physical_address(apic_physical_address));
+		mapped_base_ = static_cast<uint8_t*>(map_physical_address(apic_physical_address));
+	}
 }
 
 xapic_t::~xapic_t()
 {
-	if (this->mapped_apic_base != nullptr)
+	if (mapped_base_ != nullptr)
 	{
-		unmap_physical_address(this->mapped_apic_base);
+		unmap_physical_address(mapped_base_);
 	}
 }
 
-uint32_t xapic_t::do_read(uint16_t offset) const
+uint32_t xapic_t::do_read(const uint16_t offset) const
 {
-	if (this->mapped_apic_base == nullptr)
+	if (mapped_base_ == nullptr)
 	{
 		return 0;
 	}
 
-	return *reinterpret_cast<uint32_t*>(this->mapped_apic_base + offset);
+	return *reinterpret_cast<uint32_t*>(mapped_base_ + offset);
 }
 
-void xapic_t::do_write(uint16_t offset, uint32_t value) const
+void xapic_t::do_write(const uint16_t offset, const uint32_t value) const
 {
-	if (this->mapped_apic_base != nullptr)
+	if (mapped_base_ != nullptr)
 	{
-		*reinterpret_cast<uint32_t*>(this->mapped_apic_base + offset) = value;
+		*reinterpret_cast<uint32_t*>(mapped_base_ + offset) = value;
 	}
 }
 
-void xapic_t::write_icr(apic_full_icr_t icr)
+void xapic_t::write_icr(const apic_full_icr_t icr)
 {
-	constexpr uint16_t xapic_icr = apic::icr.get_xapic();
+	constexpr uint16_t xapic_icr = apic::icr.xapic();
 
 	do_write(xapic_icr, icr.low.flags);
 	do_write(xapic_icr + 0x10, icr.high.flags);
 }
 
-void xapic_t::set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination)
+void xapic_t::set_icr_longhand_destination(apic_full_icr_t& icr, const uint32_t destination)
 {
 	icr.high.xapic.destination_field = destination;
 }
 
-void xapic_t::signal_eoi()
-{
-	constexpr uint16_t xapic_eoi = apic::eoi.get_xapic();
-
-	do_write(xapic_eoi, 0);
-}
-
-uint64_t x2apic_t::do_read(uint32_t msr)
+uint64_t x2apic_t::do_read(const uint32_t msr)
 {
 	return apic::intrin::rdmsr(msr);
 }
 
-void x2apic_t::do_write(uint32_t msr, uint64_t value)
+void x2apic_t::do_write(const uint32_t msr, const  uint64_t value)
 {
 	apic::intrin::wrmsr(msr, value);
 }
 
-void x2apic_t::write_icr(apic_full_icr_t icr)
+void x2apic_t::write_icr(const apic_full_icr_t icr)
 {
-	constexpr uint16_t x2apic_icr = apic::icr.get_x2apic();
-
-	do_write(x2apic_icr, icr.flags);
+	do_write(apic::icr.x2apic(), icr.flags);
 }
 
-void x2apic_t::set_icr_longhand_destination(apic_full_icr_t& icr, uint32_t destination)
+void x2apic_t::set_icr_longhand_destination(apic_full_icr_t& icr, const uint32_t destination)
 {
 	icr.high.x2apic.destination_field = destination;
 }
 
-void x2apic_t::signal_eoi()
+void apic_t::write_icr(const apic_full_icr_t icr)
 {
-	constexpr uint16_t x2apic_eoi = apic::eoi.get_x2apic();
+	(void)icr;
+}
 
-	do_write(x2apic_eoi, 0);
+void apic_t::set_icr_longhand_destination(apic_full_icr_t& icr, const uint32_t destination)
+{
+	(void)icr;
+	(void)destination;
 }
 
 apic_t* apic_t::create_instance()
@@ -290,14 +289,14 @@ apic_t* apic_t::create_instance()
 
 	has_used_allocation = 1;
 
-	void* apic_allocation = &apic_class_instance_allocation;
+	void* const apic_allocation = &apic_class_instance_allocation;
 #endif
 
-	apic_base_t apic_base = read_apic_base();
+	const apic_base_t apic_base = read_apic_base();
 
-	uint8_t is_any_apic_enabled = is_any_enabled(apic_base);
+	const uint8_t is_any_apic_enabled = is_any_enabled(apic_base);
 
-	uint8_t use_x2apic = 0;
+	uint8_t use_x2apic;
 
 	if (is_any_apic_enabled == 1)
 	{
@@ -323,3 +322,4 @@ apic_t* apic_t::create_instance()
 
 	return apic;
 }
+

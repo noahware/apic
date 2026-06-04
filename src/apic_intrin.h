@@ -10,7 +10,7 @@ namespace apic
 {
     namespace intrin
     {
-        uint64_t rdmsr(uint32_t msr)
+        uint64_t rdmsr(const uint32_t msr)
         {
 #ifdef _APIC_INTRIN_IS_PURE_MSVC
             return __readmsr(msr);
@@ -23,7 +23,7 @@ namespace apic
 #endif
         }
 
-        void wrmsr(uint32_t msr, uint64_t value)
+        void wrmsr(const uint32_t msr, const uint64_t value)
         {
 #ifdef _APIC_INTRIN_IS_PURE_MSVC
             __writemsr(msr, value);
@@ -36,7 +36,7 @@ namespace apic
 #endif
         }
 
-        void cpuid(int32_t info[4], int32_t leaf)
+        void cpuid(int32_t info[4], const int32_t leaf)
         {
 #ifdef _APIC_INTRIN_IS_PURE_MSVC
             __cpuid(info, leaf);
