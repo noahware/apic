@@ -67,7 +67,7 @@ base controller::read_apic_base() noexcept
 	return apic_base;
 }
 
-uint32_t controller::current_apic_id() noexcept
+uint32_t controller::current_apic_id() const noexcept
 {
 	const cpuid_01 cpuid = perform_cpuid_01();
 
@@ -183,6 +183,43 @@ void controller::send_startup_ipi(const uint8_t vector, const icr_destination_sh
 	write_icr(command);
 }
 
+void controller::send_mult_ipis(const uint32_t vector, const uint64_t apic_id_mask, const bool is_lowest_priority)
+{
+	const icr_delivery_mode delivery_mode = is_lowest_priority ? icr_delivery_mode::lowest_priority : icr_delivery_mode::fixed;
+
+	const icr command = make_base_icr(vector, delivery_mode, icr_destination_mode::logical);
+
+	write_icr_to_mask(command, apic_id_mask);
+}
+
+void controller::send_mult_nmis(const uint64_t apic_id_mask)
+{
+	const icr command = make_base_icr(0, icr_delivery_mode::nmi, icr_destination_mode::logical);
+
+	write_icr_to_mask(command, apic_id_mask);
+}
+
+void controller::send_mult_smis(const uint64_t apic_id_mask)
+{
+	const icr command = make_base_icr(0, icr_delivery_mode::smi, icr_destination_mode::logical);
+
+	write_icr_to_mask(command, apic_id_mask);
+}
+
+void controller::send_mult_init_ipis(const uint64_t apic_id_mask)
+{
+	const icr command = make_base_icr(0, icr_delivery_mode::init, icr_destination_mode::logical);
+
+	write_icr_to_mask(command, apic_id_mask);
+}
+
+void controller::send_mult_startup_ipis(const uint8_t vector, const uint64_t apic_id_mask)
+{
+	const icr command = make_base_icr(vector, icr_delivery_mode::start_up, icr_destination_mode::logical);
+
+	write_icr_to_mask(command, apic_id_mask);
+}
+
 void* controller::operator new(const uint64_t, void* const p)
 {
 	return p;
@@ -249,6 +286,23 @@ void xapic::set_icr_longhand_destination(icr& command, const uint32_t destinatio
 	command.high.xapic.destination_field = destination;
 }
 
+void xapic::write_icr_to_mask(icr command_template, const uint64_t apic_id_mask) noexcept
+{
+	// xAPIC flat LDR model: 8-bit destination field, mask is matched against each core's 8-bit LDR.
+	// Higher bits cannot be addressed by the hardware; caller-supplied bits >= 8 are ignored.
+	command_template.high.xapic.destination_field = static_cast<uint32_t>(apic_id_mask & 0xFF);
+
+	write_icr(command_template);
+}
+
+uint32_t xapic::current_apic_id() const noexcept
+{
+	// xAPIC IDs are 8 bits — CPUID.01h:EBX[31:24] is the canonical source.
+	const cpuid_01 cpuid = perform_cpuid_01();
+
+	return cpuid.ebx.initial_apic_id;
+}
+
 uint64_t x2apic::do_read(const uint32_t msr) noexcept
 {
 	return intrin::rdmsr(msr);
@@ -269,11 +323,46 @@ void x2apic::set_icr_longhand_destination(icr& command, const uint32_t destinati
 	command.high.x2apic.destination_field = destination;
 }
 
+void x2apic::write_icr_to_mask(icr command_template, const uint64_t apic_id_mask) noexcept
+{
+	// x2APIC LDR layout (Intel SDM Vol. 3 10.12.10.2):
+	//     LDR = (cluster_id << 16) | (1 << (apic_id & 0xF)),  cluster_id = apic_id >> 4
+	// One ICR write per non-empty 16-core cluster covered by apic_id_mask.
+	// uint64_t covers APIC IDs 0..63 -> up to 4 writes.
+
+	uint64_t remaining_mask = apic_id_mask;
+
+	for (uint32_t cluster_id = 0; remaining_mask != 0; cluster_id++, remaining_mask >>= 16)
+	{
+		const uint32_t cluster_bits = static_cast<uint32_t>(remaining_mask & 0xFFFF);
+
+		if (cluster_bits == 0)
+		{
+			continue;
+		}
+
+		command_template.high.x2apic.destination_field = (cluster_id << 16) | cluster_bits;
+
+		write_icr(command_template);
+	}
+}
+
+uint32_t x2apic::current_apic_id() const noexcept
+{
+	// In x2APIC mode the APIC ID is the full 32-bit value in IA32_X2APIC_APICID.
+	// CPUID.01h's 8-bit field would alias on systems with > 256 logical processors.
+	return static_cast<uint32_t>(do_read(apic_id_reg.x2apic()));
+}
+
 void controller::write_icr(const icr) noexcept
 {
 }
 
 void controller::set_icr_longhand_destination(icr&, const uint32_t) noexcept
+{
+}
+
+void controller::write_icr_to_mask(icr, const uint64_t) noexcept
 {
 }
 

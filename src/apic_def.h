@@ -166,6 +166,7 @@ namespace apic
 
 	constexpr uint32_t base_msr = 0x1B;
 	constexpr field icr_reg(0x300);
+	constexpr field apic_id_reg(0x20);
 
 	namespace intrin
 	{

@@ -11,6 +11,7 @@ namespace apic
 		// non-pure to avoid _purecall CRT dependency
 		virtual void write_icr(icr command) noexcept;
 		virtual void set_icr_longhand_destination(icr& command, uint32_t destination) noexcept;
+		virtual void write_icr_to_mask(icr command_template, uint64_t apic_id_mask) noexcept;
 
 		void send_ipi(uint32_t vector, uint32_t apic_id, bool is_lowest_priority = false);
 		void send_ipi(uint32_t vector, icr_destination_shorthand destination_shorthand, bool is_lowest_priority = false);
@@ -27,6 +28,12 @@ namespace apic
 		void send_startup_ipi(uint8_t vector, uint32_t apic_id);
 		void send_startup_ipi(uint8_t vector, icr_destination_shorthand destination_shorthand);
 
+		void send_mult_ipis(uint32_t vector, uint64_t apic_id_mask, bool is_lowest_priority = false);
+		void send_mult_nmis(uint64_t apic_id_mask);
+		void send_mult_smis(uint64_t apic_id_mask);
+		void send_mult_init_ipis(uint64_t apic_id_mask);
+		void send_mult_startup_ipis(uint8_t vector, uint64_t apic_id_mask);
+
 		void* operator new(uint64_t size, void* p);
 		void operator delete(void* p, uint64_t size);
 
@@ -36,7 +43,7 @@ namespace apic
 		[[nodiscard]] static bool is_any_enabled(base apic_base) noexcept;
 		[[nodiscard]] static bool is_x2apic_enabled(base apic_base) noexcept;
 
-		[[nodiscard]] static uint32_t current_apic_id() noexcept;
+		[[nodiscard]] virtual uint32_t current_apic_id() const noexcept;
 		[[nodiscard]] static bool is_x2apic_supported() noexcept;
 
 		[[nodiscard]] static base read_apic_base() noexcept;
@@ -58,6 +65,9 @@ namespace apic
 
 		void write_icr(icr command) noexcept override;
 		void set_icr_longhand_destination(icr& command, uint32_t destination) noexcept override;
+		void write_icr_to_mask(icr command_template, uint64_t apic_id_mask) noexcept override;
+
+		[[nodiscard]] uint32_t current_apic_id() const noexcept override;
 	};
 
 	class x2apic : public controller
@@ -71,5 +81,8 @@ namespace apic
 
 		void write_icr(icr command) noexcept override;
 		void set_icr_longhand_destination(icr& command, uint32_t destination) noexcept override;
+		void write_icr_to_mask(icr command_template, uint64_t apic_id_mask) noexcept override;
+
+		[[nodiscard]] uint32_t current_apic_id() const noexcept override;
 	};
 }
