@@ -29,9 +29,9 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 
 	driver_object->DriverUnload = driver_unload;
 
-	apic_t* apic = apic_t::create_instance();
+	apic::controller* lapic = apic::controller::create_instance();
 
-	if (apic == nullptr)
+	if (lapic == nullptr)
 	{
 		d_log("[apic] unable to create instance of apic class\n");
 
@@ -40,13 +40,13 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 
 	uint32_t interrupt_vector = 0xE1; // vector points to nt!KiIpiInterrupt
 
-	d_log("[apic] current apic id: %x\n", apic_t::current_apic_id());
+	d_log("[apic] current apic id: %x\n", apic::controller::current_apic_id());
 	d_log("[apic] sending interrupt of vector 0x%x\n", interrupt_vector);
 
-	apic->send_ipi(interrupt_vector, icr_destination_shorthand_t::all_but_self);
+	lapic->send_ipi(interrupt_vector, apic::icr_destination_shorthand::all_but_self);
 
-	delete apic;
-	apic = nullptr;
+	delete lapic;
+	lapic = nullptr;
 
 	return STATUS_SUCCESS;
 }
