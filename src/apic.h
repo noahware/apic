@@ -25,8 +25,8 @@ public:
 	void send_init_ipi(uint32_t apic_id);
 	void send_init_ipi(icr_destination_shorthand_t destination_shorthand);
 
-	void send_startup_ipi(uint32_t apic_id);
-	void send_startup_ipi(icr_destination_shorthand_t destination_shorthand);
+	void send_startup_ipi(uint8_t vector, uint32_t apic_id);
+	void send_startup_ipi(uint8_t vector, icr_destination_shorthand_t destination_shorthand);
 
 	void* operator new(uint64_t size, void* p);
 	void operator delete(void* p, uint64_t size);

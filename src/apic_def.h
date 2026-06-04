@@ -13,7 +13,7 @@ enum class icr_delivery_mode_t : uint32_t
 {
 	fixed = 0b000,
 	lowest_priority = 0b001,
-	smi = 0b101,
+	smi = 0b010,
 	nmi = 0b100,
 	init = 0b101,
 	start_up = 0b110

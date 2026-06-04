@@ -159,17 +159,17 @@ void apic_t::send_init_ipi(const icr_destination_shorthand_t destination_shortha
 	write_icr(icr);
 }
 
-void apic_t::send_startup_ipi(const uint32_t apic_id)
+void apic_t::send_startup_ipi(const uint8_t vector, const uint32_t apic_id)
 {
-	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
+	apic_full_icr_t icr = make_base_icr(vector, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
 
 	set_icr_longhand_destination(icr, apic_id);
 	write_icr(icr);
 }
 
-void apic_t::send_startup_ipi(const icr_destination_shorthand_t destination_shorthand)
+void apic_t::send_startup_ipi(const uint8_t vector, const icr_destination_shorthand_t destination_shorthand)
 {
-	apic_full_icr_t icr = make_base_icr(0, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
+	apic_full_icr_t icr = make_base_icr(vector, icr_delivery_mode_t::start_up, icr_destination_mode_t::physical);
 
 	icr.low.destination_shorthand = destination_shorthand;
 
@@ -235,8 +235,8 @@ void xapic_t::write_icr(const apic_full_icr_t icr)
 {
 	constexpr uint16_t xapic_icr = apic::icr.xapic();
 
-	do_write(xapic_icr, icr.low.flags);
 	do_write(xapic_icr + 0x10, icr.high.flags);
+	do_write(xapic_icr, icr.low.flags);
 }
 
 void xapic_t::set_icr_longhand_destination(apic_full_icr_t& icr, const uint32_t destination)
