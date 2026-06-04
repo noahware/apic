@@ -188,10 +188,13 @@ void* controller::operator new(const uint64_t, void* const p)
 	return p;
 }
 
-void controller::operator delete([[maybe_unused]] void* const p, [[maybe_unused]] const uint64_t size)
+void controller::operator delete(void* const p, const uint64_t size)
 {
 #ifdef APIC_RUNTIME_INSTANCE_ALLOCATION
 	::free_memory(p, size);
+#else
+	(void)p;
+	(void)size;
 #endif
 }
 

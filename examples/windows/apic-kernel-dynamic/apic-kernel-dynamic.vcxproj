@@ -88,6 +88,7 @@
     </DriverSign>
     <ClCompile>
       <PreprocessorDefinitions>APIC_RUNTIME_INSTANCE_ALLOCATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -96,6 +97,7 @@
     </DriverSign>
     <ClCompile>
       <PreprocessorDefinitions>APIC_RUNTIME_INSTANCE_ALLOCATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
