@@ -220,6 +220,47 @@ void controller::send_mult_startup_ipis(const uint8_t vector, const uint64_t api
 	write_icr_to_mask(command, apic_id_mask);
 }
 
+void controller::configure_timer(const uint8_t vector, const timer_mode mode, const timer_divide divide, const bool masked) noexcept
+{
+	divide_config dcr = { };
+
+	const uint32_t raw = static_cast<uint32_t>(divide);
+
+	dcr.divide_low = raw & 0b11;
+	dcr.divide_high = (raw >> 3) & 0b1;
+
+	write_register(divide_config_reg, dcr.flags);
+
+	lvt_timer lvt = { };
+
+	lvt.vector = vector;
+	lvt.mode = mode;
+	lvt.mask = masked ? 1u : 0u;
+
+	write_register(lvt_timer_reg, lvt.flags);
+}
+
+void controller::set_timer_initial_count(const uint32_t count) noexcept
+{
+	write_register(initial_count_reg, count);
+}
+
+void controller::stop_timer() noexcept
+{
+	lvt_timer lvt = { };
+
+	lvt.flags = read_register(lvt_timer_reg);
+	lvt.mask = 1;
+
+	write_register(lvt_timer_reg, lvt.flags);
+	write_register(initial_count_reg, 0);
+}
+
+uint32_t controller::read_timer_current_count() const noexcept
+{
+	return read_register(current_count_reg);
+}
+
 void* controller::operator new(const uint64_t, void* const p)
 {
 	return p;
@@ -303,6 +344,16 @@ uint32_t xapic::current_apic_id() const noexcept
 	return cpuid.ebx.initial_apic_id;
 }
 
+uint32_t xapic::read_register(const field reg) const noexcept
+{
+	return do_read(reg.xapic());
+}
+
+void xapic::write_register(const field reg, const uint32_t value) noexcept
+{
+	do_write(reg.xapic(), value);
+}
+
 uint64_t x2apic::do_read(const uint32_t msr) noexcept
 {
 	return intrin::rdmsr(msr);
@@ -354,6 +405,16 @@ uint32_t x2apic::current_apic_id() const noexcept
 	return static_cast<uint32_t>(do_read(apic_id_reg.x2apic()));
 }
 
+uint32_t x2apic::read_register(const field reg) const noexcept
+{
+	return static_cast<uint32_t>(do_read(reg.x2apic()));
+}
+
+void x2apic::write_register(const field reg, const uint32_t value) noexcept
+{
+	do_write(reg.x2apic(), static_cast<uint64_t>(value));
+}
+
 void controller::write_icr(const icr) noexcept
 {
 }
@@ -363,6 +424,15 @@ void controller::set_icr_longhand_destination(icr&, const uint32_t) noexcept
 }
 
 void controller::write_icr_to_mask(icr, const uint64_t) noexcept
+{
+}
+
+uint32_t controller::read_register(field) const noexcept
+{
+	return 0;
+}
+
+void controller::write_register(field, const uint32_t) noexcept
 {
 }
 

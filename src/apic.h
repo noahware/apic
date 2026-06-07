@@ -13,6 +13,9 @@ namespace apic
 		virtual void set_icr_longhand_destination(icr& command, uint32_t destination) noexcept;
 		virtual void write_icr_to_mask(icr command_template, uint64_t apic_id_mask) noexcept;
 
+		virtual uint32_t read_register(field reg) const noexcept;
+		virtual void write_register(field reg, uint32_t value) noexcept;
+
 		void send_ipi(uint32_t vector, uint32_t apic_id, bool is_lowest_priority = false);
 		void send_ipi(uint32_t vector, icr_destination_shorthand destination_shorthand, bool is_lowest_priority = false);
 
@@ -33,6 +36,11 @@ namespace apic
 		void send_mult_smis(uint64_t apic_id_mask);
 		void send_mult_init_ipis(uint64_t apic_id_mask);
 		void send_mult_startup_ipis(uint8_t vector, uint64_t apic_id_mask);
+
+		void configure_timer(uint8_t vector, timer_mode mode, timer_divide divide, bool masked = false) noexcept;
+		void set_timer_initial_count(uint32_t count) noexcept;
+		void stop_timer() noexcept;
+		[[nodiscard]] uint32_t read_timer_current_count() const noexcept;
 
 		void* operator new(uint64_t size, void* p);
 		void operator delete(void* p, uint64_t size);
@@ -67,6 +75,9 @@ namespace apic
 		void set_icr_longhand_destination(icr& command, uint32_t destination) noexcept override;
 		void write_icr_to_mask(icr command_template, uint64_t apic_id_mask) noexcept override;
 
+		uint32_t read_register(field reg) const noexcept override;
+		void write_register(field reg, uint32_t value) noexcept override;
+
 		[[nodiscard]] uint32_t current_apic_id() const noexcept override;
 	};
 
@@ -82,6 +93,9 @@ namespace apic
 		void write_icr(icr command) noexcept override;
 		void set_icr_longhand_destination(icr& command, uint32_t destination) noexcept override;
 		void write_icr_to_mask(icr command_template, uint64_t apic_id_mask) noexcept override;
+
+		uint32_t read_register(field reg) const noexcept override;
+		void write_register(field reg, uint32_t value) noexcept override;
 
 		[[nodiscard]] uint32_t current_apic_id() const noexcept override;
 	};

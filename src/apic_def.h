@@ -50,6 +50,26 @@ namespace apic
 		all_but_self = 0b11
 	};
 
+	enum class timer_mode : uint32_t
+	{
+		one_shot = 0b00,
+		periodic = 0b01
+	};
+
+	// Intel SDM Volume 3: 11.5.4 Table 11-10
+	// bits 3,1,0 concatenated; bit 2 of the register is reserved
+	enum class timer_divide : uint32_t
+	{
+		by_2   = 0b0000,
+		by_4   = 0b0001,
+		by_8   = 0b0010,
+		by_16  = 0b0011,
+		by_32  = 0b1000,
+		by_64  = 0b1001,
+		by_128 = 0b1010,
+		by_1   = 0b1011
+	};
+
 	// Intel SDM Volume 3: 12.6.1 Interrupt Command Register (ICR)
 
 	union icr_low
@@ -95,6 +115,39 @@ namespace apic
 		{
 			icr_low low;
 			icr_high high;
+		};
+	};
+
+	// Intel SDM Volume 3: 11.5.1 Local Vector Table
+
+	union lvt_timer
+	{
+		uint32_t flags;
+
+		struct
+		{
+			uint32_t vector : 8;
+			uint32_t reserved1 : 4;
+			uint32_t delivery_status : 1;
+			uint32_t reserved2 : 3;
+			uint32_t mask : 1;
+			timer_mode mode : 2;
+			uint32_t reserved3 : 13;
+		};
+	};
+
+	// Intel SDM Volume 3: 11.5.4 APIC Timer
+
+	union divide_config
+	{
+		uint32_t flags;
+
+		struct
+		{
+			uint32_t divide_low : 2;
+			uint32_t reserved1 : 1;
+			uint32_t divide_high : 1;
+			uint32_t reserved2 : 28;
 		};
 	};
 
@@ -159,6 +212,10 @@ namespace apic
 	constexpr uint32_t base_msr = 0x1B;
 	constexpr field icr_reg(0x300);
 	constexpr field apic_id_reg(0x20);
+	constexpr field lvt_timer_reg(0x320);
+	constexpr field initial_count_reg(0x380);
+	constexpr field current_count_reg(0x390);
+	constexpr field divide_config_reg(0x3E0);
 
 	namespace intrin
 	{
