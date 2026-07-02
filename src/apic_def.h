@@ -56,6 +56,27 @@ namespace apic
 		periodic = 0b01
 	};
 
+	enum class lvt_delivery_mode : uint32_t
+	{
+		fixed = 0b000,
+		smi = 0b010,
+		nmi = 0b100,
+		init = 0b101,
+		ext_int = 0b111
+	};
+
+	enum class lvt_pin_polarity : uint32_t
+	{
+		active_high = 0b0,
+		active_low = 0b1
+	};
+
+	enum class lvt_trigger_mode : uint32_t
+	{
+		edge = 0b0,
+		level = 0b1
+	};
+
 	// Intel SDM Volume 3: 11.5.4 Table 11-10
 	// bits 3,1,0 concatenated; bit 2 of the register is reserved
 	enum class timer_divide : uint32_t
@@ -133,6 +154,26 @@ namespace apic
 			uint32_t mask : 1;
 			timer_mode mode : 2;
 			uint32_t reserved3 : 13;
+		};
+	};
+
+	// Intel SDM Volume 3: 11.5.1 Local Vector Table
+
+	union lvt_lint
+	{
+		uint32_t flags;
+
+		struct
+		{
+			uint32_t vector : 8;
+			lvt_delivery_mode delivery_mode : 3;
+			uint32_t reserved1 : 1;
+			uint32_t delivery_status : 1;
+			lvt_pin_polarity pin_polarity : 1;
+			uint32_t remote_irr : 1;
+			lvt_trigger_mode trigger_mode : 1;
+			uint32_t mask : 1;
+			uint32_t reserved2 : 15;
 		};
 	};
 
@@ -216,6 +257,10 @@ namespace apic
 	constexpr field initial_count_reg(0x380);
 	constexpr field current_count_reg(0x390);
 	constexpr field divide_config_reg(0x3E0);
+	constexpr field eoi_reg(0xB0);
+	constexpr field svr_reg(0xF0);
+	constexpr field lvt_lint0_reg(0x350);
+	constexpr field lvt_lint1_reg(0x360);
 
 	namespace intrin
 	{

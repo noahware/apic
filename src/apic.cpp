@@ -261,6 +261,45 @@ uint32_t controller::read_timer_current_count() const noexcept
 	return read_register(current_count_reg);
 }
 
+void controller::configure_lint0(const uint8_t vector, const lvt_delivery_mode mode, const lvt_trigger_mode trigger, const lvt_pin_polarity polarity, const bool masked) noexcept
+{
+	lvt_lint lvt = { };
+
+	lvt.vector = vector;
+	lvt.delivery_mode = mode;
+	lvt.trigger_mode = trigger;
+	lvt.pin_polarity = polarity;
+	lvt.mask = masked ? 1u : 0u;
+
+	write_register(lvt_lint0_reg, lvt.flags);
+}
+
+void controller::configure_lint1(const uint8_t vector, const lvt_delivery_mode mode, const lvt_trigger_mode trigger, const lvt_pin_polarity polarity, const bool masked) noexcept
+{
+	lvt_lint lvt = { };
+
+	lvt.vector = vector;
+	lvt.delivery_mode = mode;
+	lvt.trigger_mode = trigger;
+	lvt.pin_polarity = polarity;
+	lvt.mask = masked ? 1u : 0u;
+
+	write_register(lvt_lint1_reg, lvt.flags);
+}
+
+void controller::signal_eoi() noexcept
+{
+	write_register(eoi_reg, 0);
+}
+
+void controller::software_enable(const uint8_t spurious_vector) noexcept
+{
+	uint32_t svr = read_register(svr_reg);
+	svr |= (1u << 8);
+	svr = (svr & ~0xFFu) | spurious_vector;
+	write_register(svr_reg, svr);
+}
+
 void* controller::operator new(const uint64_t, void* const p)
 {
 	return p;
@@ -282,7 +321,7 @@ xapic::xapic()
 
 	if (apic_base.flags != 0)
 	{
-		const uint64_t apic_physical_address = apic_base.apic_pfn << 12;
+		const uint64_t apic_physical_address = static_cast<uint64_t>(apic_base.apic_pfn) << 12;
 
 		mapped_base_ = static_cast<uint8_t*>(::apic_lib_map_physical_address(apic_physical_address));
 	}

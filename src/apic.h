@@ -42,6 +42,12 @@ namespace apic
 		void stop_timer() noexcept;
 		[[nodiscard]] uint32_t read_timer_current_count() const noexcept;
 
+		void configure_lint0(uint8_t vector, lvt_delivery_mode mode, lvt_trigger_mode trigger, lvt_pin_polarity polarity, bool masked = false) noexcept;
+		void configure_lint1(uint8_t vector, lvt_delivery_mode mode, lvt_trigger_mode trigger, lvt_pin_polarity polarity, bool masked = false) noexcept;
+
+		void signal_eoi() noexcept;
+		void software_enable(uint8_t spurious_vector = 0xFF) noexcept;
+
 		void* operator new(uint64_t size, void* p);
 		void operator delete(void* p, uint64_t size);
 
